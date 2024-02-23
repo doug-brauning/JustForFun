@@ -1,0 +1,122 @@
+<html>
+<head>
+<title>Binary Clock</title>
+<script src=https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<style>
+  td { height: 30px; width: 30px; }
+  td.border { border: 1px solid black; border-radius: 15px; }
+  td.fill { background: red; background: -webkit-radial-gradient(white, red); background: -o-radial-gradient(white, red); background: -moz-radial-gradient(white, red); background: radial-gradient(white, red); }
+</style>
+<script>
+$(document).ready(function(){
+  setInterval(function(){
+    var now = new Date(),
+      a = 0,
+      h = now.getHours(),
+      m = now.getMinutes(),
+      s = now.getSeconds();
+
+    if($("#mode").val() == 12)
+    {
+      $("#ampm").show();
+
+      if (h < 12)
+        $("#ampm").text("AM");
+      else
+        $("#ampm").text("PM");
+
+      if (!(h >= 1 && h <= 12))
+        h = Math.abs(h-12);
+    }
+    else
+      $("#ampm").hide();
+
+    if ($("#format").val() == 2)
+    {
+      var values = new Array(8, 4, 2, 1),
+        temp = new Array(0, 0, 0, 0);
+      for (var n = 0; n < 4; n++)
+      {
+        if (h/10 >= values[n]) { temp[n] += 32, h -= (10 * values[n]); }
+        if (h%10 >= values[n]) { temp[n] += 16, h -= values[n]; }
+        if (m/10 >= values[n]) { temp[n] += 8, m -= (10 * values[n]); }
+        if (m%10 >= values[n]) { temp[n] += 4, m -= values[n]; }
+        if (s/10 >= values[n]) { temp[n] += 2, s -= (10 * values[n]); }
+        if (s%10 >= values[n]) { temp[n] += 1, s -= values[n]; }
+      }
+      a = temp[0], h = temp[1], m = temp[2], s = temp[3];
+    }
+    var time = new Array(a, h, m, s),
+      clock = $("#clock"),
+      rows = clock[0].rows;
+    for (var x = 0; x < rows.length; x++)
+    {
+      var cells = rows[x].cells;
+      for (var y = 0; y < cells.length; y++)
+      {
+        if (time[x] >= cells[y].id)
+        {
+          cells[y].classList.add("fill");
+          time[x] -= cells[y].id;
+        }
+        else
+        {
+          cells[y].classList.remove("fill");
+        }
+      }
+    }
+  }, 500);
+});
+</script>
+</head>
+<body>
+<table height="145" cellspacing="5" id="clock">
+  <colgroup><col /><col /><col /><col /><col /></colgroup>
+  <tbody>
+    <tr>
+      <td id="32">&nbsp;</td>
+      <td id="16" class="border">&nbsp;</td>
+      <td id="8">&nbsp;</td>
+      <td id="4" class="border">&nbsp;</td>
+      <td id="2">&nbsp;</td>
+      <td id="1" class="border">&nbsp;</td>
+    </tr>
+    <tr>
+      <td id="32">&nbsp;</td>
+      <td id="16" class="border">&nbsp;</td>
+      <td id="8" class="border">&nbsp;</td>
+      <td id="4" class="border">&nbsp;</td>
+      <td id="2" class="border">&nbsp;</td>
+      <td id="1" class="border">&nbsp;</td>
+    </tr>
+    <tr>
+      <td id="32" class="border">&nbsp;</td>
+      <td id="16" class="border">&nbsp;</td>
+      <td id="8" class="border">&nbsp;</td>
+      <td id="4" class="border">&nbsp;</td>
+      <td id="2" class="border">&nbsp;</td>
+      <td id="1" class="border">&nbsp;</td>
+    </tr>
+    <tr>
+      <td id="32" class="border">&nbsp;</td>
+      <td id="16" class="border">&nbsp;</td>
+      <td id="8" class="border">&nbsp;</td>
+      <td id="4" class="border">&nbsp;</td>
+      <td id="2" class="border">&nbsp;</td>
+      <td id="1" class="border">&nbsp;</td>
+    </tr>
+  </tbody>
+</table>
+<form>
+  <select id="mode">
+    <option value="12">12 HR</option>
+    <option value="24">24 HR</option>
+  </select>
+  <select id="format">
+    <option value="1">True Format</option>
+    <option value="2">Digit Format</option>
+  </select>
+  <label id="ampm">&nbsp;</label>
+</form>
+</body>
+</html>

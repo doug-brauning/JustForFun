@@ -1,0 +1,230 @@
+<html>
+<head>
+<title>Mahjong Calculator</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+function calculator()
+{
+  var han = 0,
+  fu = 20,
+  $player = $('.player:checked'),
+  $win = $('.win:checked'),
+  $hand = $('.hand:checked'),
+  bonus = Number($('#bonus').val());
+
+  $('.yaku:checked').each(function(){
+    if ($(this).hasClass($hand.val()))
+    {
+      if ($(this).hasClass('decr') && $hand.val() == 'open')
+        han += Number(this.value) - 1;
+      else
+        han += Number(this.value);
+    }
+  });
+
+  han += Number($('#dora').val());
+
+  var message, points;
+  if (han >= 13)
+    message = 'Kazoe-Yakuman',
+    points = 8000;
+  else if (han >= 11 && han <= 12)
+    message = 'Sanbaiman',
+    points = 6000;
+  else if (han >= 8 && han <= 10)
+    message = 'Baiman',
+    points = 4000;
+  else if (han >= 6 && han <= 7)
+    message = 'Haneman',
+    points = 3000;
+  else if (han == 5)
+    message = 'Mangan',
+    points = 2000;
+  else
+  {
+    if ($('#chiitoitsu:checked').length)
+      fu = 25;
+    else
+    {
+      if ($win.val() == 'ron' && $hand.val() == 'closed')
+        fu += 10;
+
+      for (var i = 1; i <= 4; i++)
+        fu += (
+          $('#meld'+i+' option:selected').val() * 
+          $('#type'+i+' option:selected').val() * 
+          $('#tiles'+i+' option:selected').val());
+
+      fu += Number($('.wait:checked').val());
+      fu += Number($('#pair option:selected').val());
+
+      if ($win.val() == 'tsumo' && !($('#pinfu:checked').length))
+        fu += 2;
+
+      fu = roundUp(fu, 10);
+    }
+
+    if ((han == 4 && fu >= 40) || (han == 3 && fu >= 70))
+      message = 'Mangan',
+      points = 2000;
+    else
+      message = 'Han: ' + han + ', Fu: ' + fu,
+      points = fu * Math.pow(2, (2 + han));
+  }
+
+  if ($player.val() == 1)
+  {
+    if ($win.val() == 'ron')
+      message += " - " + (roundUp(points * 6, 100) + (bonus * 300));
+    else
+      message += " - " + (roundUp(points * 2, 100) + (bonus * 100)) + " all";
+  }
+  else
+  {
+    if ($win.val() == 'ron')
+      message += " - " + (roundUp(points * 4, 100) + (bonus * 300));
+    else
+      message += " - " + (roundUp(points, 100) + (bonus * 100)) + "/" + (roundUp(points * 2, 100) + (bonus * 100));
+  }
+  $('#message').text(message);
+}
+function reset()
+{
+  $('.yaku:checked').removeAttr('checked');
+  $('select').each(function(){
+    $(this).val($(this).find('option').first().val());
+  });
+  $('#pair').val($('#pair').find('option').first().val());
+  $('#dora').val(0);
+  $('#bonus').val(0);
+  $('#message').text('');
+  $("[id^=tiles]").hide();
+  $('#fourMelds').show();
+}
+function roundUp(x, y)
+{
+  return y * Math.ceil(x / y);
+}
+
+function chiitoiClick() {
+  if ($('#chiitoitsu').is(':checked'))
+    $('#fourMelds').hide();
+  else
+    $('#fourMelds').show();
+}
+function changeMeld(id) {
+  meld = $('#meld'+id).val();
+  if (meld == '0')
+    $('#tiles'+id).hide();
+  else
+    $('#tiles'+id).show();
+}
+</script>
+<style>
+td.label {
+vertical-align: text-top;
+font-weight: bold;
+}
+</style>
+</head>
+<body>
+<table>
+<tr>
+<td class="label">Player:</td>
+<td><input type="radio" id="dealer" name="player" class="player" value="1" checked /><label for="dealer">Dealer</label></td>
+<td><input type="radio" id="nondealer" name="player" class="player" value="0" /><label for="nondealer">Non Dealer</label></td>
+</tr>
+<tr>
+<td class="label">Win:</td>
+<td><input type="radio" id="ron" name="win" class="win" value="ron" checked /><label for="ron">Ron</label></td>
+<td><input type="radio" id="tsumo" name="win" class="win" value="tsumo" /><label for="tsumo">Tsumo</label></td>
+</tr>
+<tr>
+<td class="label">Hand:</td>
+<td><input type="radio" id="open" name="hand" class="hand" value="open" checked /><label for="open">Open</label></td>
+<td><input type="radio" id="closed" name="hand" class="hand" value="closed" /><label for="closed">Closed</label></td>
+</tr>
+<tr>
+<td class="label">Yaku:</td>
+<td>
+<input type="checkbox" id="riichi" class="yaku closed" value="1" /><label for="riichi">Riichi</label><br>
+<input type="checkbox" id="chiitoitsu" class="yaku closed" value="2" onclick="chiitoiClick();" /><label for="chiitoitsu">Chiitoitsu</label><br>
+<input type="checkbox" id="nagashi" class="yaku closed open" value="5" /><label for="nagashi">Nagashi Mangan</label><br>
+<input type="checkbox" id="tsumo" class="yaku closed" value="1" /><label for="tsumo">Tsumo</label><br>
+<input type="checkbox" id="ippatsu" class="yaku closed" value="1" /><label for="ippatsu">Ippatsu</label><br>
+<input type="checkbox" id="haitei" class="yaku closed open" value="1" /><label for="haitei">Haitei Raoyue</label><br>
+<input type="checkbox" id="houtei" class="yaku closed open" value="1" /><label for="houtei">Houtei Raoyui</label><br>
+<input type="checkbox" id="rinshan" class="yaku closed open" value="1" /><label for="rinshan">Rinshan Kaihou</label><br>
+<input type="checkbox" id="chankan" class="yaku closed open" value="1" /><label for="chankan">Chankan</label>
+</td>
+<td>
+<input type="checkbox" id="daburu" class="yaku closed" value="2" /><label for="daburu">Daburu Riichi</label><br>
+<input type="checkbox" id="pinfu" class="yaku closed" value="1" /><label for="pinfu">Pinfu</label><br>
+<input type="checkbox" id="iipeikou" class="yaku closed" value="1" /><label for="iipeikou">Iipeikou</label><br>
+<input type="checkbox" id="doujun" class="yaku closed open decr" value="2" /><label for="doujun">Sanshoko Doujun</label><br>
+<input type="checkbox" id="ittsuu" class="yaku closed open decr" value="2" /><label for="ittsuu">Ittsuu</label><br>
+<input type="checkbox" id="ryanpeikou" class="yaku closed" value="3" /><label for="ryanpeikou">Ryanpeikou</label><br>
+<input type="checkbox" id="toitoi" class="yaku open" value="2" /><label for="toitoi">Toitoi</label><br>
+<input type="checkbox" id="sanankou" class="yaku closed open" value="2" /><label for="sanankou">San Ankou</label><br>
+<input type="checkbox" id="doukou" class="yaku closed open" value="2" /><label for="doukou">Sanshoko Doukou</label>
+</td>
+<td>
+<input type="checkbox" id="sankansu" class="yaku closed open" value="2" /><label for="sankansu">San Kansu</label><br>
+<input type="checkbox" id="tanyao" class="yaku closed open" value="1" /><label for="tanyao">Tan'yao</label><br>
+<input type="checkbox" id="yakuhai" class="yaku closed open" value="1" /><label for="yakuhai">Yakuhai</label>
+<select onchange="$('#yakuhai').val(this.value);">
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+</select>
+<br>
+<input type="checkbox" id="chanta" class="yaku closed open decr" value="2" /><label for="chanta">Chanta</label><br>
+<input type="checkbox" id="junchan" class="yaku closed open decr" value="3" /><label for="junchan">Junchan</label><br>
+<input type="checkbox" id="honrou" class="yaku closed open" value="2" /><label for="honrou">Honrou</label><br>
+<input type="checkbox" id="shousangen" class="yaku closed open" value="2" /><label for="shousangen">Shousangen</label><br>
+<input type="checkbox" id="honitsu" class="yaku closed open decr" value="3" /><label for="honitsu">Hon'itsu</label><br>
+<input type="checkbox" id="chinitsu" class="yaku closed open decr" value="6" /><label for="chinitsu">Chin'itsu</label>
+</td>
+</tr>
+<tr id="fourMelds">
+<td class="label">Fu:</td>
+<td>
+First Meld<br>Second Meld<br>Third Meld<br>Fourth Meld<br>Pair<br>Wait
+</td>
+<td colspan=2>
+<select id="meld1" onchange="changeMeld(1);"><option value=0>Run</option><option value=2>Triplet</option><option value=8>Quad</option></select>
+<select id="type1"><option value=1>Open</option><option value=2>Closed</option></select>
+<select id="tiles1" style="display:none;"><option value=2>Honors</option><option value=2>Terminals</option><option value=1>Other</option></select>
+<br>
+<select id="meld2" onchange="changeMeld(2);"><option value=0>Run</option><option value=2>Triplet</option><option value=8>Quad</option></select>
+<select id="type2"><option value=1>Open</option><option value=2>Closed</option></select>
+<select id="tiles2" style="display:none;"><option value=2>Honors</option><option value=2>Terminals</option><option value=1>Other</option></select>
+<br>
+<select id="meld3" onchange="changeMeld(3);"><option value=0>Run</option><option value=2>Triplet</option><option value=8>Quad</option></select>
+<select id="type3"><option value=1>Open</option><option value=2>Closed</option></select>
+<select id="tiles3" style="display:none;"><option value=2>Honors</option><option value=2>Terminals</option><option value=1>Other</option></select>
+<br>
+<select id="meld4" onchange="changeMeld(4);"><option value=0>Run</option><option value=2>Triplet</option><option value=8>Quad</option></select>
+<select id="type4"><option value=1>Open</option><option value=2>Closed</option></select>
+<select id="tiles4" style="display:none;"><option value=2>Honors</option><option value=2>Terminals</option><option value=1>Other</option></select>
+<br>
+<select id="pair"><option value=2>Honors</option><option value=0>Terminals</option><option value=0>Other</option></select>
+<br>
+<input type="radio" id="single" name="wait" class="wait" value=2 checked /><label for="single">Single</label>
+<input type="radio" id="multiple" name="wait" class="wait" value=0 /><label for="multiple">Multiple</label>
+</td>
+</tr>
+<tr>
+<td class="label">Dora:</td>
+<td><input id="dora" type="number" value="0" /></td>
+</tr>
+<tr>
+<td class="label">Bonus Sticks:</td>
+<td><input id="bonus" type="number" value="0" /></td>
+</tr>
+</table>
+<input type="button" value="Calculate" onclick="calculator();" /><input type="button" value="Reset" onclick="reset();" />
+<span id="message"></span>
+</body>
+</html>
